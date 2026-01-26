@@ -1,14 +1,52 @@
 @echo off
-echo Building the project in Release configuration...
-dotnet build ..\shell-chat.sln -c Release
+:: Navigate to project root (one level up from tools folder)
+pushd %~dp0..
 
-echo Packing the tool in Release configuration...
-dotnet pack ..\shell-chat.sln -c Release --no-build
+echo ========================================
+echo  Rebuilding and Redeploying shell-chat
+echo ========================================
+echo.
 
-echo Uninstalling the existing global tool...
-dotnet tool uninstall --global shell-chat
+:: Clean previous build
+echo [1/4] Cleaning previous build...
+dotnet clean --configuration Release --verbosity quiet
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Clean failed!
+    popd
+    pause
+    exit /b 1
+)
 
-echo Installing the new version of the global tool...
-dotnet tool install --global --add-source ../nupkg shell-chat
+:: Build and pack
+echo [2/4] Building and packing...
+dotnet pack --configuration Release --verbosity quiet
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Pack failed!
+    popd
+    pause
+    exit /b 1
+)
 
-echo Redeployment complete. You can now use the 'shc' command.
+:: Uninstall existing tool
+echo [3/4] Uninstalling existing tool...
+dotnet tool uninstall -g shell-chat 2>nul
+
+:: Install as global tool
+echo [4/4] Installing as global tool...
+dotnet tool install -g --add-source ./nupkg shell-chat
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: Tool installation failed!
+    popd
+    pause
+    exit /b 1
+)
+
+:: Return to original directory
+popd
+
+echo.
+echo ========================================
+echo  Deployment complete!
+echo  Run 'shc --help' to verify
+echo ========================================
+pause
