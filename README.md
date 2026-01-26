@@ -27,10 +27,32 @@ dotnet pack -c Release
 dotnet tool install --global --add-source ./nupkg shell-chat
 ```
 
+## Update
+
+```bash
+dotnet pack -c Release
+dotnet tool update --global --add-source ./nupkg shell-chat
+```
+
+Alternatively, uninstall and reinstall:
+
+```bash
+dotnet tool uninstall --global shell-chat
+dotnet pack -c Release
+dotnet tool install --global --add-source ./nupkg shell-chat
+```
+
+## Uninstall
+
+```bash
+dotnet tool uninstall --global shell-chat
+```
+
 ## Usage
 
 ```bash
-shell-chat
+shc
+shc --help
 ```
 
 ## Development
