@@ -55,6 +55,49 @@ shc
 shc --help
 ```
 
+## API Key Configuration
+
+shell-chat requires an API key to communicate with LLM providers. The key can be configured using three methods (in priority order):
+
+### 1. Command-line argument (highest priority)
+```bash
+shc --api-key YOUR_KEY -m "message"
+shc -k YOUR_KEY -m "message"
+```
+
+### 2. Environment variable
+```bash
+# Windows
+set SHELLCHAT_API_KEY=YOUR_KEY
+
+# Linux/macOS
+export SHELLCHAT_API_KEY=YOUR_KEY
+```
+
+### 3. Config file (persistent storage)
+```bash
+shc config set-key YOUR_KEY
+```
+
+The config file is stored at:
+- Windows: `%APPDATA%\shell-chat\config.json`
+- Linux/macOS: `~/.config/shell-chat/config.json`
+
+### Configuration Commands
+
+```bash
+# Show current configuration
+shc config show
+
+# Set API key
+shc config set-key YOUR_KEY
+
+# Clear API key
+shc config clear-key
+```
+
+**Note:** The config file stores the API key in plain text. Ensure appropriate file permissions.
+
 ## Development
 
 ```bash
