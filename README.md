@@ -61,8 +61,8 @@ shell-chat requires an API key to communicate with LLM providers. The key can be
 
 ### 1. Command-line argument (highest priority)
 ```bash
-shc --api-key YOUR_KEY -m "message"
-shc -k YOUR_KEY -m "message"
+shc --api-key YOUR_KEY query "your question"
+shc -k YOUR_KEY q "your question"
 ```
 
 ### 2. Environment variable
@@ -97,6 +97,31 @@ shc config clear-key
 ```
 
 **Note:** The config file stores the API key in plain text. Ensure appropriate file permissions.
+
+## Query Command
+
+Send queries to the LLM using the `query` command (or its alias `q`):
+
+```bash
+# Full command
+shc query "What is the capital of France?"
+
+# Using alias
+shc q "Explain recursion in simple terms"
+
+# With API key
+shc query "Your question" --api-key YOUR_KEY
+shc q "Your question" -k YOUR_KEY
+```
+
+## Quick Redeploy
+
+For development, use the redeploy script to quickly rebuild and reinstall the tool:
+
+```bash
+# Windows
+tools\redeploy.cmd
+```
 
 ## Development
 
