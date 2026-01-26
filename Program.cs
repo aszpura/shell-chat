@@ -1,11 +1,21 @@
 ﻿using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using shell_chat;
+using shell_chat.Configuration;
 
-var rootCommand = new RootCommand("Shell Chat App - A CLI tool for communicating with LLM models");
-rootCommand.Options.Add(CommandConfiguration.MessageOption);
-rootCommand.Options.Add(CommandConfiguration.ApiKeyOption);
-rootCommand.Subcommands.Add(ApiConfigCommand.Configure());
-rootCommand.SetAction(CommandConfiguration.HandleMessageCommand);
+// Build DI container
+var services = new ServiceCollection();
+services.AddSingleton<IConfigurationManager, ConfigurationManager>();
+services.AddSingleton<IMessageHandler, MessageHandler>();
+services.AddSingleton<IQueryHandler, QueryHandler>();
+services.AddSingleton<ApiConfigCommand>();
+services.AddSingleton<CommandConfiguration>();
+
+var serviceProvider = services.BuildServiceProvider();
+
+// Resolve and configure root command
+var commandConfig = serviceProvider.GetRequiredService<CommandConfiguration>();
+var rootCommand = commandConfig.CreateRootCommand();
 
 return rootCommand.Parse(args).Invoke();
 

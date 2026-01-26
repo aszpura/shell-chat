@@ -6,31 +6,95 @@ namespace shell_chat;
 /// <summary>
 /// Provides command-line configuration including options and their associated actions.
 /// </summary>
-public static class CommandConfiguration
+public class CommandConfiguration
 {
-    /// <summary>
-    /// Gets the message option for command-line input.
-    /// </summary>
-    public static Option<string> MessageOption { get; } = CreateMessageOption();
+    private readonly IConfigurationManager _configurationManager;
+    private readonly IMessageHandler _messageHandler;
+    private readonly IQueryHandler _queryHandler;
+    private readonly ApiConfigCommand _apiConfigCommand;
 
-    /// <summary>
-    /// Gets the API key option for command-line input.
-    /// </summary>
-    public static Option<string> ApiKeyOption { get; } = CreateApiKeyOption();
-
-    /// <summary>
-    /// Creates and configures the message option.
-    /// </summary>
-    /// <returns>A configured Option for message input.</returns>
-    private static Option<string> CreateMessageOption()
+    public CommandConfiguration(
+        IConfigurationManager configurationManager,
+        IMessageHandler messageHandler,
+        IQueryHandler queryHandler,
+        ApiConfigCommand apiConfigCommand)
     {
-        var messageOption = new Option<string>("--message")
+        _configurationManager = configurationManager;
+        _messageHandler = messageHandler;
+        _queryHandler = queryHandler;
+        _apiConfigCommand = apiConfigCommand;
+    }
+
+    /// <summary>
+    /// Creates and returns the configured root command.
+    /// </summary>
+    public RootCommand CreateRootCommand()
+    {
+        var rootCommand = new RootCommand("Shell Chat App - A CLI tool for communicating with LLM models");
+        rootCommand.Subcommands.Add(CreateQueryCommand());
+        rootCommand.Subcommands.Add(CreateMessageCommand());
+        rootCommand.Subcommands.Add(_apiConfigCommand.CreateApiConfigCommand());
+        return rootCommand;
+    }
+
+    /// <summary>
+    /// Creates the query subcommand.
+    /// </summary>
+    private Command CreateQueryCommand()
+    {
+        var queryArgument = new Argument<string>("text")
         {
-            Description = "The message to process."
+            Description = "The query text to send to the LLM."
         };
-        messageOption.Aliases.Add("-m");
-        
-        return messageOption;
+
+        var apiKeyOption = CreateApiKeyOption();
+
+        var queryCommand = new Command("query", "Send a query to the LLM and get a response.");
+        queryCommand.Aliases.Add("q");
+        queryCommand.Arguments.Add(queryArgument);
+        queryCommand.Options.Add(apiKeyOption);
+
+        queryCommand.SetAction(parseResult =>
+        {
+            var query = parseResult.GetValue(queryArgument);
+            var commandLineApiKey = parseResult.GetValue(apiKeyOption);
+            var apiKey = _configurationManager.ResolveApiKey(commandLineApiKey);
+
+            _queryHandler.ProcessQuery(query, apiKey);
+            return 0;
+        });
+
+        return queryCommand;
+    }
+
+    /// <summary>
+    /// Creates the message subcommand.
+    /// </summary>
+    private Command CreateMessageCommand()
+    {
+        var messageArgument = new Argument<string>("text")
+        {
+            Description = "The message text to process."
+        };
+
+        var apiKeyOption = CreateApiKeyOption();
+
+        var messageCommand = new Command("message", "Process a message.");
+        messageCommand.Aliases.Add("m");
+        messageCommand.Arguments.Add(messageArgument);
+        messageCommand.Options.Add(apiKeyOption);
+
+        messageCommand.SetAction(parseResult =>
+        {
+            var message = parseResult.GetValue(messageArgument);
+            var commandLineApiKey = parseResult.GetValue(apiKeyOption);
+            var apiKey = _configurationManager.ResolveApiKey(commandLineApiKey);
+
+            _messageHandler.ProcessMessage(message, apiKey);
+            return 0;
+        });
+
+        return messageCommand;
     }
 
     /// <summary>
@@ -46,23 +110,5 @@ public static class CommandConfiguration
         apiKeyOption.Aliases.Add("-k");
         
         return apiKeyOption;
-    }
-
-    /// <summary>
-    /// Processes the message action when the command is invoked.
-    /// </summary>
-    /// <param name="parseResult">The parse result containing command-line arguments.</param>
-    /// <returns>Exit code: 0 for success.</returns>
-    public static int HandleMessageCommand(ParseResult parseResult)
-    {
-        var message = parseResult.GetValue(MessageOption);
-        var commandLineApiKey = parseResult.GetValue(ApiKeyOption);
-        
-        var configManager = new ConfigurationManager();
-        var apiKey = configManager.ResolveApiKey(commandLineApiKey);
-
-        var handler = new MessageHandler();
-        handler.ProcessMessage(message, apiKey);
-        return 0;
     }
 }

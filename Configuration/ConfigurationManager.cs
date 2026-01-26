@@ -8,7 +8,7 @@ namespace shell_chat.Configuration;
 /// 2. Environment variables
 /// 3. User config file (lowest priority)
 /// </summary>
-public class ConfigurationManager
+public class ConfigurationManager : IConfigurationManager
 {
     private const string EnvironmentVariableName = "SHELLCHAT_API_KEY";
     private const string ConfigFileName = "config.json";

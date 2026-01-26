@@ -6,12 +6,19 @@ namespace shell_chat;
 /// <summary>
 /// Handles the 'config' subcommand for managing application configuration.
 /// </summary>
-public static class ApiConfigCommand
+public class ApiConfigCommand
 {
+    private readonly IConfigurationManager _configurationManager;
+
+    public ApiConfigCommand(IConfigurationManager configurationManager)
+    {
+        _configurationManager = configurationManager;
+    }
+
     /// <summary>
     /// Creates the config command with its subcommands.
     /// </summary>
-    public static Command Configure()
+    public Command CreateApiConfigCommand()
     {
         var configCommand = new Command("config", "Manage shell-chat configuration");
 
@@ -22,7 +29,7 @@ public static class ApiConfigCommand
         return configCommand;
     }
 
-    private static Command CreateSetCommand()
+    private Command CreateSetCommand()
     {
         var apiKeyArgument = new Argument<string>("api-key")
         {
@@ -42,12 +49,11 @@ public static class ApiConfigCommand
                 return 1;
             }
 
-            var configManager = new ConfigurationManager();
-            configManager.SetApiKey(apiKey);
+            _configurationManager.SetApiKey(apiKey);
 
             // Show masked key for confirmation
             var maskedKey = MaskApiKey(apiKey);
-            Console.WriteLine($"API key saved to: {configManager.ConfigFilePath}");
+            Console.WriteLine($"API key saved to: {_configurationManager.ConfigFilePath}");
             Console.WriteLine($"Key: {maskedKey}");
             Console.WriteLine();
             Console.WriteLine("Warning: The API key is stored in plain text. Ensure the config file has appropriate permissions.");
@@ -58,28 +64,27 @@ public static class ApiConfigCommand
         return setCommand;
     }
 
-    private static Command CreateShowCommand()
+    private Command CreateShowCommand()
     {
         var showCommand = new Command("show", "Show current configuration and API key source");
 
         showCommand.SetAction(parseResult =>
         {
-            var configManager = new ConfigurationManager();
-            var source = configManager.GetApiKeySource();
-            var hasKey = configManager.HasApiKey();
+            var source = _configurationManager.GetApiKeySource();
+            var hasKey = _configurationManager.HasApiKey();
 
             Console.WriteLine("Shell-Chat Configuration");
             Console.WriteLine("========================");
             Console.WriteLine();
-            Console.WriteLine($"Config file location: {configManager.ConfigFilePath}");
-            Console.WriteLine($"Config file exists:   {File.Exists(configManager.ConfigFilePath)}");
+            Console.WriteLine($"Config file location: {_configurationManager.ConfigFilePath}");
+            Console.WriteLine($"Config file exists:   {File.Exists(_configurationManager.ConfigFilePath)}");
             Console.WriteLine();
             Console.WriteLine($"API Key configured:   {(hasKey ? "Yes" : "No")}");
             Console.WriteLine($"API Key source:       {source}");
 
             if (hasKey)
             {
-                var apiKey = configManager.ResolveApiKey();
+                var apiKey = _configurationManager.ResolveApiKey();
                 Console.WriteLine($"API Key (masked):     {MaskApiKey(apiKey!)}");
             }
 
@@ -92,14 +97,13 @@ public static class ApiConfigCommand
         return showCommand;
     }
 
-    private static Command CreateClearCommand()
+    private Command CreateClearCommand()
     {
         var clearCommand = new Command("clear-key", "Clear the API key from the config file");
 
         clearCommand.SetAction(parseResult =>
         {
-            var configManager = new ConfigurationManager();
-            configManager.ClearApiKey();
+            _configurationManager.ClearApiKey();
 
             Console.WriteLine("API key cleared from config file.");
             Console.WriteLine();

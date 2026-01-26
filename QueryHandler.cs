@@ -1,12 +1,16 @@
 namespace shell_chat;
 
-public class MessageHandler : IMessageHandler
+/// <summary>
+/// Handles LLM query processing.
+/// </summary>
+public class QueryHandler : IQueryHandler
 {
-    public void ProcessMessage(string? message, string? apiKey = null)
+    /// <inheritdoc />
+    public void ProcessQuery(string? query, string? apiKey = null)
     {
-        if (string.IsNullOrEmpty(message))
+        if (string.IsNullOrEmpty(query))
         {
-            Console.WriteLine("No message provided. Use --help for more information.");
+            Console.WriteLine("No query provided. Use --help for more information.");
             return;
         }
 
@@ -15,7 +19,7 @@ public class MessageHandler : IMessageHandler
             Console.WriteLine("Error: No API key configured.");
             Console.WriteLine();
             Console.WriteLine("Configure an API key using one of these methods (in priority order):");
-            Console.WriteLine("  1. Command-line:  shc --api-key YOUR_KEY -m \"message\"");
+            Console.WriteLine("  1. Command-line:  shc --api-key YOUR_KEY -q \"query\"");
             Console.WriteLine("  2. Environment:   set SHELLCHAT_API_KEY=YOUR_KEY");
             Console.WriteLine("  3. Config file:   shc config set-key YOUR_KEY");
             Console.WriteLine();
@@ -23,7 +27,9 @@ public class MessageHandler : IMessageHandler
             return;
         }
 
-        Console.WriteLine($"Processing message: {message}");
+        // TODO: Replace with actual LLM call
+        Console.WriteLine("Hello World!");
+        Console.WriteLine($"Query: {query}");
         Console.WriteLine($"API Key configured: Yes (using {MaskApiKey(apiKey)})");
     }
 
