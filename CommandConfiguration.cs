@@ -54,13 +54,13 @@ public class CommandConfiguration
         queryCommand.Arguments.Add(queryArgument);
         queryCommand.Options.Add(apiKeyOption);
 
-        queryCommand.SetAction(parseResult =>
+        queryCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var query = parseResult.GetValue(queryArgument);
             var commandLineApiKey = parseResult.GetValue(apiKeyOption);
             var apiKey = _configurationManager.ResolveApiKey(commandLineApiKey);
 
-            _queryHandler.ProcessQuery(query, apiKey);
+            await _queryHandler.ProcessQueryAsync(query, apiKey, cancellationToken);
             return 0;
         });
 

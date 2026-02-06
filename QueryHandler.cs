@@ -1,3 +1,6 @@
+using Microsoft.Extensions.AI;
+using OpenAI;
+
 namespace shell_chat;
 
 /// <summary>
@@ -5,8 +8,11 @@ namespace shell_chat;
 /// </summary>
 public class QueryHandler : IQueryHandler
 {
+    private const string DefaultModel = "gpt-4o-mini";
+    private const string AdvancedModel = "gpt-5-mini";
+
     /// <inheritdoc />
-    public void ProcessQuery(string? query, string? apiKey = null)
+    public async Task ProcessQueryAsync(string? query, string? apiKey = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(query))
         {
@@ -16,33 +22,23 @@ public class QueryHandler : IQueryHandler
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine("Error: No API key configured.");
-            Console.WriteLine();
-            Console.WriteLine("Configure an API key using one of these methods (in priority order):");
-            Console.WriteLine("  1. Command-line:  shc --api-key YOUR_KEY -q \"query\"");
-            Console.WriteLine("  2. Environment:   set SHELLCHAT_API_KEY=YOUR_KEY");
-            Console.WriteLine("  3. Config file:   shc config set-key YOUR_KEY");
-            Console.WriteLine();
-            Console.WriteLine("Run 'shc config show' to see current configuration.");
+            ConsoleHelper.DisplayApiKeyNotConfiguredError();
             return;
         }
 
-        // TODO: Replace with actual LLM call
-        Console.WriteLine("Hello World!");
-        Console.WriteLine($"Query: {query}");
-        Console.WriteLine($"API Key configured: Yes (using {MaskApiKey(apiKey)})");
-    }
-
-    /// <summary>
-    /// Masks an API key for display, showing only the first 4 and last 4 characters.
-    /// </summary>
-    private static string MaskApiKey(string apiKey)
-    {
-        if (apiKey.Length <= 8)
+        try
         {
-            return new string('*', apiKey.Length);
-        }
+            IChatClient chatClient = new OpenAIClient(apiKey)
+                .GetChatClient(DefaultModel)
+                .AsIChatClient();
 
-        return $"{apiKey[..4]}...{apiKey[^4..]}";
+            var response = await chatClient.GetResponseAsync(query, cancellationToken: cancellationToken);
+
+            Console.WriteLine(response.Text);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error communicating with OpenAI: {ex.Message}");
+        }
     }
 }

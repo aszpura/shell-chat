@@ -67,8 +67,11 @@ shc -k YOUR_KEY q "your question"
 
 ### 2. Environment variable
 ```bash
-# Windows
+# Windows (Command Prompt)
 set SHELLCHAT_API_KEY=YOUR_KEY
+
+# Windows (PowerShell)
+$env:SHELLCHAT_API_KEY = "YOUR_KEY"
 
 # Linux/macOS
 export SHELLCHAT_API_KEY=YOUR_KEY
@@ -129,3 +132,16 @@ tools\redeploy.cmd
 dotnet build
 dotnet run
 ```
+
+### If you want to test during development
+
+Use `dotnet run` with `--` to pass arguments to the application:
+
+```bash
+dotnet run -- --help
+dotnet run -- config show
+dotnet run -- config set-key YOUR_API_KEY
+dotnet run -- query "test question"
+dotnet run -- q "what is recursion?"
+```
+
